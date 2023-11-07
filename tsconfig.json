@@ -16,6 +16,14 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "resolveJsonModule": true,
+    "paths": {
+      "use-cases/*": ["/use-cases/*"],
+      "app/*": ["/*"],
+      "vtex/*": ["vtex/*"],
+      "root/*": ["src"],
+      "vtex-data/*": ["../test/vtex-data/*"]
+    }
   }
 }

@@ -1,9 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/prisma/prisma.service';
-import * as argon from 'argon2';
 import { AuthService } from './auth.service';
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, HttpStatus } from '@nestjs/common';
 import { AuthController } from './auth.controller';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 jest.mock('argon2');
 
@@ -18,6 +17,7 @@ const fakeUser = {
 
 const serviceMock = {
   signup: jest.fn().mockResolvedValue(fakeUser),
+  signToken: jest.fn(),
 };
 
 describe('AuthService', () => {
@@ -30,7 +30,7 @@ describe('AuthService', () => {
       controllers: [AuthController],
     }).compile();
 
-    service = module.get<AuthService>(AuthService);
+    service = module.get(AuthService);
     controller = module.get<AuthController>(AuthController);
   });
 
@@ -53,17 +53,53 @@ describe('AuthService', () => {
       });
     });
     it(`should return error without email`, async () => {
+      const erroBody = {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: ['email should not be empty', 'email must be an email'],
+        error: 'Bad Request',
+      };
       jest
-        .spyOn(controller, 'signup')
-        .mockImplementationOnce(() => Promise.reject(new ForbiddenException()));
+        .spyOn(service, 'signup')
+        .mockRejectedValueOnce(
+          new BadRequestException([
+            'email should not be empty',
+            'email must be an email',
+          ]),
+        );
 
-      const response = controller.signup({
-        email: null,
-        password: '123',
-      });
+      try {
+        await controller.signup({
+          email: null,
+          password: '123',
+        });
+      } catch (error) {
+        expect(error.response).toMatchObject(erroBody);
+        expect(error.status).toStrictEqual(HttpStatus.BAD_REQUEST);
+      }
+    });
+    it(`should return error bad request if email already taken`, async () => {
+      const erroBody = {
+        error: 'Forbidden',
+        message: 'Credentials taken',
+        statusCode: HttpStatus.FORBIDDEN,
+      };
 
-      expect(response).rejects.toThrow();
-      expect(response).rejects.toThrowError();
+      jest.spyOn(service, 'signToken').mockRejectedValueOnce(
+        new PrismaClientKnownRequestError('error', {
+          clientVersion: '1',
+          code: '400',
+        }),
+      );
+
+      try {
+        await controller.signup({
+          email: fakeUser.email,
+          password: '123',
+        });
+      } catch (error) {
+        expect(error.response).toMatchObject(erroBody);
+        expect(error.status).toBe(HttpStatus.FORBIDDEN);
+      }
     });
   });
 });

@@ -36,9 +36,11 @@ describe('JwtStrategy', () => {
     };
 
     jest.spyOn(service, 'validate');
+
     jest
       .spyOn(prisma.user, 'findFirst')
       .mockResolvedValue(fakeUser as unknown as User);
+
     const validate = await service.validate(payload);
 
     expect(service.validate).toHaveBeenCalledTimes(1);

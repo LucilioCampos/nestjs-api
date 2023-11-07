@@ -15,11 +15,6 @@ module.exports = {
   ],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
-  globals: {
-    'ts-jest': {
-      isolatedModules: true,
-    },
-  },
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/$1',
   },
