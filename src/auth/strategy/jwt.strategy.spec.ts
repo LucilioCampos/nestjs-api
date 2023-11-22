@@ -7,10 +7,19 @@ import { User } from '@prisma/client';
 const fakeUser = {
   id: 1,
   email: 'lucilio.junior@keyrus.com.br',
+  password: '123',
   firstName: null,
   lastName: null,
   createdAt: '2023-11-06T14:53:35.014Z',
   updatedAt: '2023-11-06T14:53:35.014Z',
+};
+
+const prismaMock = {
+  user: {
+    findFirst: jest.fn().mockResolvedValue(fakeUser),
+    findUnique: jest.fn().mockResolvedValue(fakeUser),
+    create: jest.fn().mockResolvedValue(fakeUser),
+  },
 };
 
 describe('JwtStrategy', () => {
@@ -18,7 +27,12 @@ describe('JwtStrategy', () => {
   let prisma: PrismaService;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [JwtStrategy, ConfigService, PrismaService],
+      providers: [
+        JwtStrategy,
+        ConfigService,
+        PrismaService,
+        { provide: PrismaService, useValue: prismaMock },
+      ],
     }).compile();
 
     service = module.get<JwtStrategy>(JwtStrategy);
@@ -54,7 +68,7 @@ describe('JwtStrategy', () => {
       email: 'lucilio@codeby.com.br',
     };
 
-    jest.spyOn(service, 'validate');
+    jest.spyOn(service, 'validate').mockResolvedValue(null);
     const validate = await service.validate(payload);
 
     expect(service.validate).toHaveBeenCalledTimes(1);
