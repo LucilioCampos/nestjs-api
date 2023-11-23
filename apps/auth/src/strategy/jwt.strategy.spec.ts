@@ -1,0 +1,78 @@
+import { ConfigService } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { JwtStrategy } from './jwt.strategy';
+import { User } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
+
+const fakeUser = {
+  id: 1,
+  email: 'lucilio.junior@keyrus.com.br',
+  password: '123',
+  firstName: null,
+  lastName: null,
+  createdAt: '2023-11-06T14:53:35.014Z',
+  updatedAt: '2023-11-06T14:53:35.014Z',
+};
+
+const prismaMock = {
+  user: {
+    findFirst: jest.fn().mockResolvedValue(fakeUser),
+    findUnique: jest.fn().mockResolvedValue(fakeUser),
+    create: jest.fn().mockResolvedValue(fakeUser),
+  },
+};
+
+describe('JwtStrategy', () => {
+  let service: JwtStrategy;
+  let prisma: PrismaService;
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        JwtStrategy,
+        ConfigService,
+        PrismaService,
+        { provide: PrismaService, useValue: prismaMock },
+      ],
+    }).compile();
+
+    service = module.get<JwtStrategy>(JwtStrategy);
+    prisma = module.get<PrismaService>(PrismaService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('Valid User', async () => {
+    const payload = {
+      sub: 1,
+      email: fakeUser.email,
+    };
+
+    jest.spyOn(service, 'validate');
+
+    jest
+      .spyOn(prisma.user, 'findFirst')
+      .mockResolvedValue(fakeUser as unknown as User);
+
+    const validate = await service.validate(payload);
+
+    expect(service.validate).toHaveBeenCalledTimes(1);
+    expect(service.validate).toBeCalledWith(payload);
+    expect(validate).toMatchObject(fakeUser);
+  });
+
+  it('Invalid User', async () => {
+    const payload = {
+      sub: 2,
+      email: 'lucilio@codeby.com.br',
+    };
+
+    jest.spyOn(service, 'validate').mockResolvedValue(null);
+    const validate = await service.validate(payload);
+
+    expect(service.validate).toHaveBeenCalledTimes(1);
+    expect(service.validate).toBeCalledWith(payload);
+    expect(validate).toBe(null);
+  });
+});

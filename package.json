@@ -1,5 +1,5 @@
 {
-  "name": "nestjs-api",
+  "name": "core",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -15,24 +15,28 @@
     "db:test:deploy": "npx prisma migrate deploy",
     "db:test:restart": "yarn db:test:rm && yarn db:test:up && yarn db:test:deploy",
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/apps/core/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "dotenv -e .env.test -- jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "dotenv -e .env.test -- jest --watch --config ./test/jest-e2e.json"
+    "test:e2e": "dotenv -e .env.apps/core/test -- jest --watch --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.9.11",
+    "@grpc/proto-loader": "^0.7.10",
     "@nestjs/bull": "^10.0.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.1.1",
     "@nestjs/core": "^9.0.0",
     "@nestjs/jwt": "^10.2.0",
+    "@nestjs/mapped-types": "*",
+    "@nestjs/microservices": "^10.2.10",
     "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^9.0.0",
     "@prisma/client": "^5.5.2",
@@ -44,7 +48,8 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "ts-proto": "^1.164.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
