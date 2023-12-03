@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient {
+  private readonly logger: Logger;
   constructor(config: ConfigService) {
     super({
       datasources: {
@@ -12,5 +13,7 @@ export class PrismaService extends PrismaClient {
         },
       },
     });
+    this.logger = new Logger('DatabaseService');
+    this.logger.log(`[Database Conected]`);
   }
 }

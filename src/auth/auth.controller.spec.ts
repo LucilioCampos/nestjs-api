@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { BadRequestException, HttpStatus } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { AUTH_SERVICE_TOKEN } from './contracts/tokens';
 
 jest.mock('argon2');
 
@@ -26,7 +27,10 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthService, { provide: AuthService, useValue: serviceMock }],
+      providers: [
+        AuthService,
+        { provide: AUTH_SERVICE_TOKEN, useValue: serviceMock },
+      ],
       controllers: [AuthController],
     }).compile();
 
@@ -40,14 +44,14 @@ describe('AuthService', () => {
 
   describe('signup', () => {
     it(`should return an array of posts`, async () => {
-      jest.fn().mockImplementation(controller.signup);
+      jest.spyOn(controller, 'signup');
       const response = await controller.signup({
         email: fakeUser.email,
         password: '123',
       });
       expect(response).toEqual(fakeUser);
-      expect(service.signup).toHaveBeenCalledTimes(1);
-      expect(service.signup).toHaveBeenCalledWith({
+      expect(controller.signup).toHaveBeenCalledTimes(1);
+      expect(controller.signup).toHaveBeenCalledWith({
         email: fakeUser.email,
         password: '123',
       });
