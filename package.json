@@ -15,7 +15,7 @@
     "db:test:deploy": "npx prisma migrate deploy",
     "db:test:restart": "yarn db:test:rm && yarn db:test:up && yarn db:test:deploy",
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -28,6 +28,7 @@
     "test:e2e": "dotenv -e .env.test -- jest --watch --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/axios": "^3.0.1",
     "@nestjs/bull": "^10.0.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.1.1",
@@ -37,9 +38,11 @@
     "@nestjs/platform-express": "^9.0.0",
     "@prisma/client": "^5.5.2",
     "argon2": "^0.31.2",
+    "axios": "^1.6.5",
     "bull": "^4.11.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "cookie-parser": "^1.4.6",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
