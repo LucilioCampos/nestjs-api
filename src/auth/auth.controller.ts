@@ -5,10 +5,13 @@ import {
   HttpStatus,
   Inject,
   Post,
+  Res,
 } from '@nestjs/common';
 import { AuthDto } from './dto';
 import { AUTH_SERVICE_TOKEN } from './contracts/tokens';
 import { IAuthService } from './contracts';
+import { Response } from 'express';
+import { HttpStatusCode } from 'axios';
 
 @Controller('auth')
 export class AuthController {
@@ -20,7 +23,12 @@ export class AuthController {
   }
   @HttpCode(HttpStatus.OK)
   @Post('signin')
-  signin(@Body() authDto: AuthDto) {
-    return this.authService.signin(authDto);
+  async signin(
+    @Body() authDto: AuthDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { access_token } = await this.authService.signin(authDto);
+    response.cookie('CID', access_token);
+    return HttpStatusCode.Accepted;
   }
 }

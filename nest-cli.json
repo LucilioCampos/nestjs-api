@@ -1,5 +1,19 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "src"
+  "sourceRoot": "src",
+  "projects": {
+    "vtex": {
+      "type": "library",
+      "root": "libs/vtex",
+      "entryFile": "index",
+      "sourceRoot": "libs/vtex/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/vtex/tsconfig.lib.json"
+      }
+    }
+  },
+  "compilerOptions": {
+    "webpack": true
+  }
 }

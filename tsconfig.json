@@ -19,11 +19,27 @@
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
     "paths": {
-      "use-cases/*": ["/use-cases/*"],
-      "app/*": ["/*"],
-      "vtex/*": ["vtex/*"],
-      "root/*": ["src"],
-      "vtex-data/*": ["../test/vtex-data/*"]
+      "use-cases/*": [
+        "/use-cases/*"
+      ],
+      "app/*": [
+        "/*"
+      ],
+      "vtex/*": [
+        "vtex/*"
+      ],
+      "root/*": [
+        "src"
+      ],
+      "vtex-data/*": [
+        "../test/vtex-data/*"
+      ],
+      "@app/vtex": [
+        "libs/vtex/src"
+      ],
+      "@app/vtex/*": [
+        "libs/vtex/src/*"
+      ]
     }
   }
 }
