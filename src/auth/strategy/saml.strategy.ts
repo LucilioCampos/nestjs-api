@@ -10,7 +10,7 @@ export class SAMLStrategy extends PassportStrategy(Strategy, 'saml') {
       entryPoint: process.env.SAML_ENTRYPOINT,
       issuer: process.env.SAML_ISSUER,
       callbackUrl: process.env.SAML_CALLBACK,
-      cert: fs.readFileSync('../../workspace/certs/saml-cert.pem', 'utf-8'),
+      cert: process.env.CERT_SAML || ''
     });
   }
 
@@ -19,7 +19,7 @@ export class SAMLStrategy extends PassportStrategy(Strategy, 'saml') {
       email:
         profile.email ||
         profile[
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
         ],
       name: profile.displayName || profile.cn,
     };
