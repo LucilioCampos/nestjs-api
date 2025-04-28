@@ -18,10 +18,7 @@ import { WebhooksModule } from './webhooks/webhooks.module';
       envFilePath: ['.env'],
     }),
     BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT),
-      },
+      redis: process.env.REDIS_URL,
     }),
     UsersModule,
     PrismaModule,
