@@ -1,0 +1,54 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+{
+	"name": "Node.js & TypeScript",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+	"features": {
+		"ghcr.io/itsmechlark/features/postgresql:1": {
+			"version": "17"
+		},
+		"ghcr.io/itsmechlark/features/redis-server:1": {
+			"version": "7"
+		}
+	},
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/mnt/host_ssh,type=bind,readonly",
+		"source=${localEnv:HOME}/.gitconfig,target=/mnt/host_gitconfig,type=bind,readonly",
+		"source=${localWorkspaceFolder}/certs/saml-cert.pem,target=/workspace/certs/saml-cert.pem,type=bind"
+	],
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "sh .devcontainer/postCreateCommand.sh",
+	"postStartCommand": "sh .devcontainer/postStartCommand.sh",
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"ms-azuretools.vscode-docker",
+				"Prisma.prisma",
+				"travi.vscode-helm",
+				"Orta.vscode-jest"
+			]
+		}
+	},
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+	"containerEnv": {
+		"PGHOST": "localhost",
+		"PGUSER": "grendene",
+		"PGPASSWORD": "grendene",
+		"PGDATABASE": "grendene",
+		"DATABASE_URL": "postgresql://grendene:grendene@localhost:5432/grendene",
+		"REDIS_HOST": "localhost",
+		"REDIS_PORT": "6379"
+	},
+	"forwardPorts": [
+		3000
+	]
+}

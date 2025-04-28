@@ -1,26 +1,18 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Post,
-} from '@nestjs/common';
-import { AuthDto } from './dto';
-import { AUTH_SERVICE_TOKEN } from './contracts/tokens';
-import { IAuthService } from './contracts';
+// auth.controller.ts
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
-  constructor(@Inject(AUTH_SERVICE_TOKEN) private authService: IAuthService) {}
-  @HttpCode(HttpStatus.OK)
-  @Post('signup')
-  signup(@Body() authDto: AuthDto) {
-    return this.authService.signup(authDto);
+  @Get('saml/login')
+  @UseGuards(AuthGuard('saml'))
+  async samlLogin() {
+    // Redirect to IdP happens automatically
   }
-  @HttpCode(HttpStatus.OK)
-  @Post('signin')
-  signin(@Body() authDto: AuthDto) {
-    return this.authService.signin(authDto);
+
+  @Get('saml/callback')
+  @UseGuards(AuthGuard('saml'))
+  async samlCallback(@Req() req) {
+    return req.user; // contains the SAML profile
   }
 }

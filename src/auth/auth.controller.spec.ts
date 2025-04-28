@@ -1,109 +1,47 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service';
-import { BadRequestException, HttpStatus } from '@nestjs/common';
 import { AuthController } from './auth.controller';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { AUTH_SERVICE_TOKEN } from './contracts/tokens';
+import { AuthService } from './auth.service'; // If you have an AuthService
+import { AuthGuard } from '@nestjs/passport';
+import { ExecutionContext } from '@nestjs/common';
 
-jest.mock('argon2');
+// Mock the AuthGuard
+class MockAuthGuard {
+  canActivate(context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest();
+    request.user = { id: 1, username: 'testuser', email: 'testuser@example.com' }; // Mock user object
+    return true; // Allow the request to pass
+  }
+}
 
-const fakeUser = {
-  id: 7,
-  email: 'lucilio.junior@keyrus.com.braasd',
-  firstName: null,
-  lastName: null,
-  createdAt: '2023-11-06T08:02:31.335Z',
-  updatedAt: '2023-11-06T08:02:31.335Z',
-};
-
-const serviceMock = {
-  signup: jest.fn().mockResolvedValue(fakeUser),
-  signToken: jest.fn(),
-};
-
-describe('AuthService', () => {
-  let service: AuthService;
-  let controller: AuthController;
+describe('AuthController', () => {
+  let authController: AuthController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        AuthService,
-        { provide: AUTH_SERVICE_TOKEN, useValue: serviceMock },
-      ],
       controllers: [AuthController],
-    }).compile();
+      providers: [AuthService], // Provide the AuthService if needed
+    })
+      .overrideGuard(AuthGuard('saml')) // Override the AuthGuard with the mock
+      .useClass(MockAuthGuard)
+      .compile();
 
-    service = module.get(AuthService);
-    controller = module.get<AuthController>(AuthController);
+    authController = module.get<AuthController>(AuthController);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  it('should be defined', () => {
+    expect(authController).toBeDefined();
   });
 
-  describe('signup', () => {
-    it(`should return an array of posts`, async () => {
-      jest.spyOn(controller, 'signup');
-      const response = await controller.signup({
-        email: fakeUser.email,
-        password: '123',
-      });
-      expect(response).toEqual(fakeUser);
-      expect(controller.signup).toHaveBeenCalledTimes(1);
-      expect(controller.signup).toHaveBeenCalledWith({
-        email: fakeUser.email,
-        password: '123',
-      });
-    });
-    it(`should return error without email`, async () => {
-      const erroBody = {
-        statusCode: HttpStatus.BAD_REQUEST,
-        message: ['email should not be empty', 'email must be an email'],
-        error: 'Bad Request',
-      };
-      jest
-        .spyOn(service, 'signup')
-        .mockRejectedValueOnce(
-          new BadRequestException([
-            'email should not be empty',
-            'email must be an email',
-          ]),
-        );
+  it('should return user on saml/callback', async () => {
+    const req = { user: { id: 1, username: 'testuser', email: 'testuser@example.com' } };
+    const result = await authController.samlCallback(req as any);
+    expect(result).toEqual(req.user); // The response should be the mocked user
+  });
 
-      try {
-        await controller.signup({
-          email: null,
-          password: '123',
-        });
-      } catch (error) {
-        expect(error.response).toMatchObject(erroBody);
-        expect(error.status).toStrictEqual(HttpStatus.BAD_REQUEST);
-      }
-    });
-    it(`should return error bad request if email already taken`, async () => {
-      const erroBody = {
-        error: 'Forbidden',
-        message: 'Credentials taken',
-        statusCode: HttpStatus.FORBIDDEN,
-      };
-
-      jest.spyOn(service, 'signToken').mockRejectedValueOnce(
-        new PrismaClientKnownRequestError('error', {
-          clientVersion: '1',
-          code: '400',
-        }),
-      );
-
-      try {
-        await controller.signup({
-          email: fakeUser.email,
-          password: '123',
-        });
-      } catch (error) {
-        expect(error.response).toMatchObject(erroBody);
-        expect(error.status).toBe(HttpStatus.FORBIDDEN);
-      }
-    });
+  it('should trigger samlLogin', async () => {
+    // Test the samlLogin route, in this case, it should just redirect
+    const req = {}; // You can pass any mock request if needed
+    const result = await authController.samlLogin();
+    expect(result).toBeUndefined(); // As the samlLogin method doesn't return anything
   });
 });

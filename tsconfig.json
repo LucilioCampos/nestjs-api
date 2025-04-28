@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "isolatedModules": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -19,11 +20,12 @@
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
     "paths": {
-      "use-cases/*": ["/use-cases/*"],
-      "app/*": ["/*"],
-      "vtex/*": ["vtex/*"],
-      "root/*": ["src"],
-      "vtex-data/*": ["../test/vtex-data/*"]
+      "@prisma/*": [
+        "src/prisma/*"
+      ],
+      "root/*": [
+        "src"
+      ]
     }
   }
 }

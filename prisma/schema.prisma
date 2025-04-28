@@ -1,39 +1,164 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
-  hash      String
-  firstName String?
-  lastName  String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  bookmarks  Bookmark[]
+  id          Int              @id @default(autoincrement())
+  email       String           @unique
+  username    String?
+  isAdmin     Boolean          @default(false) @map("is_admin")
+  canWrite    Boolean          @default(false) @map("can_write")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  departments UserDepartment[]
 
   @@map("users")
 }
 
-model Bookmark {
-  id          Int     @id @default(autoincrement())
-  title       String
-  description String?
-  link        String
+model Department {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique()
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  users       UserDepartment[]
+  departments DepartmentFlow[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@map("departments")
+}
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
+model UserDepartment {
+  userId       Int        @map("user_id")
+  departmentId Int        @map("dapartment_id")
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  @@map("bookmarks")
+  @@id([userId, departmentId])
+  @@map("user_departments")
+}
+
+model Flow {
+  id                Int              @id @default(autoincrement())
+  nickname          String
+  slug              String?
+  notificationEmail String           @map("notification_email")
+  retries           Int
+  headers           String?
+  departmentFlows   DepartmentFlow[]
+  messages          Message[]
+  steps             Step[]
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  @@map("flows")
+}
+
+model DepartmentFlow {
+  departmentId Int        @map("department_id")
+  flowId       Int        @map("flow_id")
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  flow         Flow       @relation(fields: [flowId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([departmentId, flowId])
+  @@map("department_flows")
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  origin    String
+  body      String
+  headers   String?
+  flowId    Int      @map("flow_id")
+  flow      Flow     @relation(fields: [flowId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  Job       Job[]
+
+  @@map("messages")
+}
+
+model Step {
+  id                    Int    @id @default(autoincrement())
+  nickname              String
+  informaticaTaskFlowId String @map("informatica_taskflow_id")
+  order                 Int
+  parentId              Int?   @map("parent_id")
+
+  // Self-referential relation (parent-child)
+  parent   Step?  @relation("StepToParent", fields: [parentId], references: [id])
+  children Step[] @relation("StepToParent") // Renamed from "Step" to "children" for clarity
+
+  // Relation to Flow
+  flowId Int  @map("flow_id")
+  flow   Flow @relation(fields: [flowId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  Job       Job[]
+
+  @@map("steps")
+}
+
+model Job {
+  id         Int         @id @default(autoincrement())
+  messageId  Int
+  stepId     Int
+  message    Message     @relation(fields: [messageId], references: [id])
+  step       Step        @relation(fields: [stepId], references: [id])
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+  executions Execution[]
+
+  @@map("jobs")
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+model Execution {
+  id                    Int             @id @default(autoincrement())
+  status                ExecutionStatus @default(PENDING)
+  body                  Json
+  informaticaTaskFlowId String          @map("informatica_taskflow_id")
+  informaticaRunId      String?         @map("informatica_run_id")
+  startTime             DateTime?       @map("start_time")
+  finishTime            DateTime?       @map("finish_time")
+  jobId                 Int
+  job                   Job             @relation(fields: [jobId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("executions")
+}
+
+model Error {
+  id            Int    @id @default(autoincrement())
+  originalError String @map("original_error")
+  friendlyError String @map("friendlyError")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("errors")
 }
